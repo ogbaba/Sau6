@@ -1,0 +1,69 @@
+[gd_scene load_steps=4 format=1]
+
+[ext_resource path="res://sprites/gnuu.png" type="Texture" id=1]
+[ext_resource path="res://sprites/gnuuarm.png" type="Texture" id=2]
+
+[sub_resource type="GDScript" id=1]
+
+script/source = "extends Node\n\n# class member variables go here, for example:\n# var a = 2\n# var b = \"textvar\"\nvar pepperscene = load(\"res://pepper.tscn\")\nvar pepper\nvar peppers\nvar cooldown\nvar evilscene = load(\"res://evil.tscn\")\nvar evil\nvar evils\nvar spawndelay\nvar maxdelay\nvar randY\nvar time\nvar button\n\nfunc _ready():\n\t# Called every time the node is added to the scene.\n\t# Initialization here\n\tcooldown = 0\n\tpeppers = []\n\tevils = []\n\tspawndelay = 3\n\tmaxdelay = 3\n\ttime = 0\n\trandomize()\n\tbutton = get_node(\"WindowDialog/Button\")\n\tbutton.connect(\"pressed\", self, \"button_pressed\")\n\tset_process_input(true)\n\tset_fixed_process(true)\n\tset_process(true)\n\nfunc _fixed_process(delta):\n\ttime += delta\n\tcooldown -= delta\n\tspawndelay -= delta\n\tmaxdelay -= delta/20\n\tif (spawndelay <= 0):\n\t\tspawndelay = maxdelay\n\t\tevil = evilscene.instance()\n\t\tevils.append(evil)\n\t\trandY = randf()*get_viewport().get_visible_rect().size.y;\n\t\tevil.set_pos(Vector2(get_viewport().get_visible_rect().size.x, randY))\n\t\tadd_child(evil)\n\nfunc _process(delta):\n\tfor e in evils:\n\t\tfor p in peppers:\n\t\t\tif (e.overlaps_area(p)):\n\t\t\t\tremove_child(e)\n\t\t\t\tremove_child(p)\n\t\tif (e.get_pos().x < get_node(\"gnu\").get_pos().x):\n\t\t\tremove_child(e)\n\t\t\tset_fixed_process(false)\n\t\t\tset_process(false)\n\t\t\tget_node(\"WindowDialog\").popup()\n\t\t\tget_node(\"WindowDialog/Label 2\").set_text(str(\"Your score is \", time, \" congratulations !\"))\n\tfor p in peppers:\n\t\tif (p.get_pos().x > get_viewport().get_visible_rect().size.x):\n\t\t\tremove_child(p)\n\nfunc _input(event):\n\tif (event.type == InputEvent.SCREEN_TOUCH):\n\t\tif (event.is_pressed() and (cooldown <= 0)):\n\t\t\tcooldown = 0.5\n\t\t\tif (event.pos.y < get_viewport().get_visible_rect().size.y/2):\n\t\t\t\tget_node(\"gnuarms\").set_rot(-PI/4)\n\t\t\telse:\n\t\t\t\tget_node(\"gnuarms\").set_rot(PI + PI/4)\n\t\t\tpepper = pepperscene.instance()\n\t\t\tpeppers.append(pepper)\n\t\t\tpepper.set_pos(Vector2(get_node(\"gnuarms\").get_pos().x, event.pos.y))\n\t\t\tadd_child(pepper)\n\nfunc button_pressed():\n\tget_tree().change_scene(\"res://main.tscn\")"
+
+[node name="game" type="Node2D"]
+
+script/script = SubResource( 1 )
+
+[node name="gnu" type="Sprite" parent="."]
+
+transform/pos = Vector2( 166.065, 368.932 )
+transform/scale = Vector2( 0.682149, 0.682149 )
+texture = ExtResource( 1 )
+
+[node name="gnuarms" type="Sprite" parent="."]
+
+transform/pos = Vector2( 128.558, 429.935 )
+transform/scale = Vector2( 0.887431, 0.887431 )
+texture = ExtResource( 2 )
+
+[node name="WindowDialog" type="WindowDialog" parent="."]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = -8.0
+margin/top = -8.0
+margin/right = 1286.0
+margin/bottom = 730.0
+popup/exclusive = false
+window/title = ""
+
+[node name="Button" type="Button" parent="WindowDialog"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 534.0
+margin/top = 471.0
+margin/right = 751.0
+margin/bottom = 587.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Continue"
+flat = false
+
+[node name="Label 2" type="Label" parent="WindowDialog"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 405.0
+margin/top = 183.0
+margin/right = 859.0
+margin/bottom = 385.0
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+
