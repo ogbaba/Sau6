@@ -5,7 +5,84 @@
 
 [sub_resource type="GDScript" id=1]
 
-script/source = "extends Node\n\n# class member variables go here, for example:\n# var a = 2\n# var b = \"textvar\"\nvar pepperscene = load(\"res://pepper.tscn\")\nvar pepper\nvar peppers\nvar cooldown\nvar evilscene = load(\"res://evil.tscn\")\nvar evil\nvar evils\nvar spawndelay\nvar maxdelay\nvar randY\nvar time\nvar button\n\nfunc _ready():\n\t# Called every time the node is added to the scene.\n\t# Initialization here\n\tcooldown = 0\n\tpeppers = []\n\tevils = []\n\tspawndelay = 3\n\tmaxdelay = 3\n\ttime = 0\n\trandomize()\n\tbutton = get_node(\"WindowDialog/Button\")\n\tbutton.connect(\"pressed\", self, \"button_pressed\")\n\tset_process_input(true)\n\tset_fixed_process(true)\n\tset_process(true)\n\nfunc _fixed_process(delta):\n\ttime += delta\n\tcooldown -= delta\n\tspawndelay -= delta\n\tmaxdelay -= delta/20\n\tif (spawndelay <= 0):\n\t\tspawndelay = maxdelay\n\t\tevil = evilscene.instance()\n\t\tevils.append(evil)\n\t\trandY = randf()*get_viewport().get_visible_rect().size.y;\n\t\tevil.set_pos(Vector2(get_viewport().get_visible_rect().size.x, randY))\n\t\tadd_child(evil)\n\nfunc _process(delta):\n\tfor e in evils:\n\t\tfor p in peppers:\n\t\t\tif (e.overlaps_area(p)):\n\t\t\t\tremove_child(e)\n\t\t\t\tremove_child(p)\n\t\tif (e.get_pos().x < get_node(\"gnu\").get_pos().x):\n\t\t\tremove_child(e)\n\t\t\tset_fixed_process(false)\n\t\t\tset_process(false)\n\t\t\tget_node(\"WindowDialog\").popup()\n\t\t\tget_node(\"WindowDialog/Label 2\").set_text(str(\"Your score is \", time, \" congratulations !\"))\n\tfor p in peppers:\n\t\tif (p.get_pos().x > get_viewport().get_visible_rect().size.x):\n\t\t\tremove_child(p)\n\nfunc _input(event):\n\tif (event.type == InputEvent.SCREEN_TOUCH):\n\t\tif (event.is_pressed() and (cooldown <= 0)):\n\t\t\tcooldown = 0.5\n\t\t\tif (event.pos.y < get_viewport().get_visible_rect().size.y/2):\n\t\t\t\tget_node(\"gnuarms\").set_rot(-PI/4)\n\t\t\telse:\n\t\t\t\tget_node(\"gnuarms\").set_rot(PI + PI/4)\n\t\t\tpepper = pepperscene.instance()\n\t\t\tpeppers.append(pepper)\n\t\t\tpepper.set_pos(Vector2(get_node(\"gnuarms\").get_pos().x, event.pos.y))\n\t\t\tadd_child(pepper)\n\nfunc button_pressed():\n\tget_tree().change_scene(\"res://main.tscn\")"
+script/source = "extends Node
+
+# class member variables go here, for example:
+# var a = 2
+# var b = \"textvar\"
+var pepperscene = load(\"res://pepper.tscn\")
+var pepper
+var peppers
+var cooldown
+var evilscene = load(\"res://evil.tscn\")
+var evil
+var evils
+var spawndelay
+var maxdelay
+var randY
+var time
+var button
+
+func _ready():
+	# Called every time the node is added to the scene.
+	# Initialization here
+	cooldown = 0
+	peppers = []
+	evils = []
+	spawndelay = 3
+	maxdelay = 3
+	time = 0
+	randomize()
+	button = get_node(\"WindowDialog/Button\")
+	button.connect(\"pressed\", self, \"button_pressed\")
+	set_process_input(true)
+	set_fixed_process(true)
+	set_process(true)
+
+func _fixed_process(delta):
+	time += delta
+	cooldown -= delta
+	spawndelay -= (delta * randf()) / randf()
+	maxdelay -= delta/20
+	if (spawndelay <= 0):
+		spawndelay = maxdelay
+		evil = evilscene.instance()
+		evils.append(evil)
+		randY = randf()*get_viewport().get_visible_rect().size.y;
+		evil.set_pos(Vector2(get_viewport().get_visible_rect().size.x, randY))
+		add_child(evil)
+
+func _process(delta):
+	for e in evils:
+		for p in peppers:
+			if (e.overlaps_area(p)):
+				remove_child(e)
+				remove_child(p)
+		if (e.get_pos().x < get_node(\"gnu\").get_pos().x):
+			remove_child(e)
+			set_fixed_process(false)
+			set_process(false)
+			get_node(\"WindowDialog\").popup()
+			get_node(\"WindowDialog/Label 2\").set_text(str(\"Your score is \", time, \" congratulations !\"))
+	for p in peppers:
+		if (p.get_pos().x > get_viewport().get_visible_rect().size.x):
+			remove_child(p)
+
+func _input(event):
+	if (event.type == InputEvent.SCREEN_TOUCH):
+		if (event.is_pressed() and (cooldown <= 0)):
+			cooldown = 0.4
+			if (event.pos.y < get_viewport().get_visible_rect().size.y/2):
+				get_node(\"gnuarms\").set_rot(-PI/4)
+			else:
+				get_node(\"gnuarms\").set_rot(PI + PI/4)
+			pepper = pepperscene.instance()
+			peppers.append(pepper)
+			pepper.set_pos(Vector2(get_node(\"gnuarms\").get_pos().x, event.pos.y))
+			add_child(pepper)
+
+func button_pressed():
+	get_tree().change_scene(\"res://main.tscn\")"
 
 [node name="game" type="Node2D"]
 
